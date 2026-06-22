@@ -1,8 +1,20 @@
 import Link from "next/link";
-import { ArrowRight, Shield, Truck, Headphones, Star, Globe } from "lucide-react";
+import {
+  ArrowRight,
+  ShieldCheck,
+  Truck,
+  Headphones,
+  Star,
+  Globe,
+  Radio,
+  Zap,
+  BadgeCheck,
+  PhoneCall,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryCard, IndustryCard } from "@/components/products/category-card";
+import { FeaturedTabs } from "@/components/products/featured-tabs";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { prisma } from "@/lib/prisma";
 import { getCurrency } from "@/lib/currency-server";
@@ -22,8 +34,8 @@ export default async function HomePage() {
         take: 4,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.category.findMany({ orderBy: { name: "asc" } }),
-      prisma.industry.findMany({ orderBy: { name: "asc" } }),
+      prisma.category.findMany({ orderBy: { name: "asc" }, take: 6 }),
+      prisma.industry.findMany({ orderBy: { name: "asc" }, take: 6 }),
       prisma.review.findMany({
         where: { featured: true },
         take: 4,
@@ -31,98 +43,158 @@ export default async function HomePage() {
       }),
     ]);
 
-  const trustBadges = [
-    { icon: Truck, title: "Free Shipping", desc: "On qualifying orders" },
-    { icon: Shield, title: "1 Year Warranty", desc: "Satisfaction guaranteed" },
-    { icon: Headphones, title: "Expert Support", desc: "US & Canada based team" },
-    { icon: Globe, title: "Nationwide Range", desc: "LTE PoC solutions available" },
+  const valueProps = [
+    { icon: Truck, title: "Fast Free Shipping", desc: "On all qualifying orders across the US & Canada." },
+    { icon: ShieldCheck, title: "1-Year Warranty", desc: "Every radio is backed by our satisfaction guarantee." },
+    { icon: Headphones, title: "Expert Programming", desc: "We configure channels and roles to match your fleet." },
+    { icon: Globe, title: "Nationwide Range", desc: "PoC over LTE + Wi-Fi keeps teams connected anywhere." },
+  ];
+
+  const stats = [
+    { value: "25+", label: "Years of experience" },
+    { value: "50k+", label: "Radios deployed" },
+    { value: "4.9/5", label: "Customer rating" },
   ];
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-red-900 text-white">
-        <div className="container-page grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
-          <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-red-300">
-              Over 25 Years in Two-Way Radio
-            </p>
-            <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
-              Nationwide Walkie-Talkie & Two-Way Radio Solutions
+      {/* HERO */}
+      <section className="hero-mesh relative overflow-hidden text-white">
+        <div className="container-page relative grid items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
+          <div className="animate-fade-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-red-300 backdrop-blur">
+              <Zap className="h-3.5 w-3.5" /> Over 25 Years in Two-Way Radio
+            </span>
+            <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+              Two-Way Radios Built to <span className="text-red-500">Keep You Connected</span>
             </h1>
-            <p className="mt-4 text-lg text-slate-200">
-              Expert programming, fast shipping, and industry-ready kits for
-              business, commercial, and professional communication.
+            <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-300">
+              Business, commercial, and nationwide PoC radios — with expert
+              programming, fast shipping, and industry-ready kits for every team.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" asChild>
                 <Link href="/search">
-                  Shop Now <ArrowRight className="h-4 w-4" />
+                  Shop All Radios <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                <Link href="/contact">Talk to an Expert</Link>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-white/5 text-white hover:bg-white/10"
+                asChild
+              >
+                <Link href="/contact">
+                  <PhoneCall className="h-4 w-4" /> Talk to an Expert
+                </Link>
               </Button>
             </div>
+            <div className="mt-10 grid max-w-md grid-cols-3 gap-4">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-2xl font-extrabold text-white sm:text-3xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
-            <p className="text-sm uppercase tracking-wide text-red-200">Featured</p>
-            <h2 className="mt-2 text-2xl font-bold">Motorola TLK110 Nationwide Radio</h2>
-            <p className="mt-3 text-slate-200">
-              Instant PTT over LTE with centralized management and zero range anxiety.
-            </p>
-            <Button className="mt-6" asChild>
-              <Link href="/products/motorola-tlk110-radio">View Product</Link>
-            </Button>
+
+          <div className="animate-fade-up [animation-delay:120ms]">
+            <div className="relative mx-auto max-w-md rounded-3xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                  <Star className="h-3 w-3 fill-current" /> Featured
+                </span>
+                <span className="text-xs font-medium text-slate-300">Nationwide PoC</span>
+              </div>
+              <div className="mt-6 grid place-items-center rounded-2xl bg-gradient-to-b from-white/10 to-transparent py-10">
+                <Radio className="h-28 w-28 text-red-400" strokeWidth={1.2} />
+              </div>
+              <h3 className="mt-6 text-xl font-bold">Motorola TLK110 Radio</h3>
+              <p className="mt-2 text-sm text-slate-300">
+                Instant push-to-talk over LTE with centralized management and zero
+                range anxiety.
+              </p>
+              <Button className="mt-5 w-full" asChild>
+                <Link href="/products/motorola-tlk110-radio">View Product</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="container-page grid gap-6 py-10 sm:grid-cols-2 lg:grid-cols-4">
-          {trustBadges.map((badge) => (
-            <div key={badge.title} className="flex items-start gap-3">
-              <badge.icon className="mt-1 h-6 w-6 shrink-0 text-red-600" />
+      {/* VALUE PROPS */}
+      <section className="border-b border-slate-200 bg-white">
+        <div className="container-page grid gap-px overflow-hidden rounded-2xl sm:grid-cols-2 lg:grid-cols-4 lg:py-0">
+          {valueProps.map((vp) => (
+            <div
+              key={vp.title}
+              className="flex items-start gap-4 bg-white px-2 py-8 lg:px-6"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-red-50 text-red-600">
+                <vp.icon className="h-5 w-5" />
+              </span>
               <div>
-                <h3 className="font-semibold text-slate-900">{badge.title}</h3>
-                <p className="text-sm text-slate-600">{badge.desc}</p>
+                <h3 className="font-bold text-slate-900">{vp.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                  {vp.desc}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="container-page py-16">
-        <div className="mb-8 flex items-end justify-between">
+      {/* FEATURED PRODUCTS */}
+      <section className="container-page py-16 lg:py-20">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h2 className="section-title">Featured Products</h2>
-            <p className="mt-2 text-slate-600">Top picks from our catalog</p>
+            <p className="eyebrow">Handpicked for you</p>
+            <h2 className="section-title mt-2">Featured Products</h2>
           </div>
-          <Link href="/search" className="text-sm font-semibold text-red-600 hover:underline">
-            View all
+          <Link
+            href="/search"
+            className="group inline-flex items-center gap-1 text-sm font-semibold text-red-600"
+          >
+            View all products
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
           </Link>
         </div>
-        <div className="mb-12">
-          <h3 className="mb-4 text-lg font-bold text-slate-900">New Arrivals</h3>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {newArrivals.map((product) => (
-              <ProductCard key={product.id} product={product} currency={currency} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <h3 className="mb-4 text-lg font-bold text-slate-900">Best Sellers</h3>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={product} currency={currency} />
-            ))}
-          </div>
+
+        <div className="mt-8">
+          <FeaturedTabs
+            bestSellers={
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {bestSellers.map((product) => (
+                  <ProductCard key={product.id} product={product} currency={currency} />
+                ))}
+              </div>
+            }
+            newArrivals={
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {newArrivals.map((product) => (
+                  <ProductCard key={product.id} product={product} currency={currency} />
+                ))}
+              </div>
+            }
+          />
         </div>
       </section>
 
-      <section className="bg-slate-50 py-16">
+      {/* SHOP BY CATEGORY */}
+      <section className="bg-slate-50 py-16 lg:py-20">
         <div className="container-page">
-          <h2 className="section-title">Shop by Category</h2>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="text-center">
+            <p className="eyebrow">Find the right gear</p>
+            <h2 className="section-title mt-2">Shop by Category</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+              From compact business radios to professional MOTOTRBO portfolios —
+              there&apos;s a solution for every team.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
               <CategoryCard key={category.id} {...category} />
             ))}
@@ -130,46 +202,98 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container-page py-16">
-        <h2 className="section-title">Built for Your Industry</h2>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* INDUSTRIES */}
+      <section className="container-page py-16 lg:py-20">
+        <div className="text-center">
+          <p className="eyebrow">Tailored solutions</p>
+          <h2 className="section-title mt-2">Built for Your Industry</h2>
+        </div>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {industries.map((industry) => (
             <IndustryCard key={industry.id} {...industry} />
           ))}
         </div>
       </section>
 
-      <section className="bg-slate-900 py-16 text-white">
+      {/* PROMO CTA */}
+      <section className="container-page pb-16 lg:pb-20">
+        <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-14 text-white lg:px-16">
+          <div className="hero-mesh absolute inset-0 opacity-60" />
+          <div className="relative grid items-center gap-8 lg:grid-cols-2">
+            <div>
+              <h2 className="text-3xl font-extrabold sm:text-4xl">
+                Need help choosing the right radio?
+              </h2>
+              <p className="mt-4 max-w-lg text-slate-300">
+                Our US &amp; Canada based team will match the gear and programming
+                to your workflows and existing fleets — at no extra cost.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Button size="lg" asChild>
+                <Link href="/contact">
+                  <PhoneCall className="h-4 w-4" /> Get Expert Advice
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-white/5 text-white hover:bg-white/10"
+                asChild
+              >
+                <Link href="/search">Browse Catalog</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* REVIEWS */}
+      <section className="bg-slate-50 py-16 lg:py-20">
         <div className="container-page">
-          <h2 className="section-title text-white">Customer Reviews</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="text-center">
+            <div className="mb-3 flex items-center justify-center gap-1 text-amber-400">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="h-5 w-5 fill-current" />
+              ))}
+            </div>
+            <p className="eyebrow">Trusted by thousands</p>
+            <h2 className="section-title mt-2">What Our Customers Say</h2>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
             {reviews.map((review) => (
-              <blockquote
+              <figure
                 key={review.id}
-                className="rounded-xl border border-slate-700 bg-slate-800/50 p-6"
+                className="card-surface flex flex-col p-6"
               >
                 <div className="mb-3 flex gap-1 text-amber-400">
                   {Array.from({ length: review.rating }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
-                <p className="text-slate-200">&ldquo;{review.content}&rdquo;</p>
-                <footer className="mt-4 text-sm font-semibold text-white">
-                  — {review.author}
-                </footer>
-              </blockquote>
+                <blockquote className="flex-1 text-slate-700">
+                  &ldquo;{review.content}&rdquo;
+                </blockquote>
+                <figcaption className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <BadgeCheck className="h-4 w-4 text-green-600" />
+                  {review.author}
+                  <span className="font-normal text-slate-400">· Verified Buyer</span>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="container-page py-16">
-        <div className="rounded-2xl bg-red-600 px-8 py-12 text-center text-white">
-          <h2 className="text-3xl font-bold">Stay Connected</h2>
+      {/* NEWSLETTER */}
+      <section className="container-page py-16 lg:py-20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-600 to-red-700 px-8 py-14 text-center text-white shadow-xl lg:px-16">
+          <h2 className="text-3xl font-extrabold sm:text-4xl">Stay Connected</h2>
           <p className="mx-auto mt-3 max-w-xl text-red-100">
-            Join our newsletter for product updates, deployment guides, and exclusive offers.
+            Join our newsletter for product updates, deployment guides, and
+            exclusive offers — straight to your inbox.
           </p>
-          <div className="mx-auto mt-6 max-w-md">
+          <div className="mx-auto mt-7 max-w-md">
             <NewsletterForm />
           </div>
         </div>

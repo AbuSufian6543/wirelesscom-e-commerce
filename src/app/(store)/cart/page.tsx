@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getOrCreateCart, getVariantLabel } from "@/lib/cart";
+import { getCart, getVariantLabel } from "@/lib/cart";
 import { getCurrency } from "@/lib/currency-server";
 import { getProductPrice, getVariantPrice } from "@/lib/currency";
 import { formatPrice } from "@/lib/utils";
@@ -9,10 +9,11 @@ import { removeCartItemAction, updateCartItemAction } from "@/app/actions/cart";
 import { getShippingCents } from "@/lib/constants";
 
 export default async function CartPage() {
-  const [cart, currency] = await Promise.all([getOrCreateCart(), getCurrency()]);
+  const [cart, currency] = await Promise.all([getCart(), getCurrency()]);
+  const items = cart?.items ?? [];
 
   let subtotalCents = 0;
-  const lines = cart.items.map((item) => {
+  const lines = items.map((item) => {
     const pricing = item.variant
       ? getVariantPrice(item.variant, item.product, currency)
       : getProductPrice(item.product, currency);

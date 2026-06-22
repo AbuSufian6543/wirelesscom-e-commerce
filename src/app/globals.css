@@ -4,9 +4,11 @@
   --background: #ffffff;
   --foreground: #0f172a;
   --primary: #dc2626;
+  --primary-dark: #b91c1c;
   --primary-foreground: #ffffff;
   --muted: #f8fafc;
   --border: #e2e8f0;
+  --ink: #0b1220;
 }
 
 @theme inline {
@@ -20,10 +22,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
+* {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .container-page {
@@ -34,6 +42,65 @@ body {
   @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl;
 }
 
+.eyebrow {
+  @apply text-xs font-bold uppercase tracking-[0.2em] text-red-600;
+}
+
 .prose-store {
-  @apply text-slate-600 leading-relaxed;
+  @apply leading-relaxed text-slate-600;
+}
+
+.card-surface {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+}
+
+/* Hero mesh background */
+.hero-mesh {
+  background-color: #0b1220;
+  background-image:
+    radial-gradient(at 18% 20%, rgba(220, 38, 38, 0.45) 0px, transparent 55%),
+    radial-gradient(at 82% 0%, rgba(56, 89, 168, 0.4) 0px, transparent 50%),
+    radial-gradient(at 75% 85%, rgba(220, 38, 38, 0.25) 0px, transparent 50%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+/* Hide scrollbar for marquees */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -4,7 +4,8 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { signIn } from "@/lib/auth";
+import { auth, signIn } from "@/lib/auth";
+import { mergeGuestCart } from "@/lib/cart";
 
 export async function registerAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -32,6 +33,10 @@ export async function registerAction(formData: FormData) {
   });
 
   await signIn("credentials", { email, password, redirect: false });
+  const session = await auth();
+  if (session?.user?.id) {
+    await mergeGuestCart(session.user.id);
+  }
   redirect("/account");
 }
 
@@ -44,8 +49,13 @@ export async function loginAction(formData: FormData) {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: callbackUrl,
+      redirect: false,
     });
+    const session = await auth();
+    if (session?.user?.id) {
+      await mergeGuestCart(session.user.id);
+    }
+    redirect(callbackUrl);
   } catch {
     return { error: "Invalid email or password." };
   }

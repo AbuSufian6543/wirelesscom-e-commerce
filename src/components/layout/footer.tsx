@@ -1,44 +1,148 @@
 import Link from "next/link";
+import {
+  Radio,
+  Phone,
+  Mail,
+  MapPin,
+  Truck,
+  ShieldCheck,
+  CreditCard,
+  Headphones,
+} from "lucide-react";
 import { SITE_EMAIL, SITE_NAME, SITE_PHONE } from "@/lib/constants";
 
+const socials = [
+  {
+    label: "Facebook",
+    path: "M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12Z",
+  },
+  {
+    label: "Instagram",
+    path: "M12 2c2.72 0 3.06.01 4.12.06 1.07.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.16.56.55.9 1.11 1.16 1.77.25.64.42 1.36.47 2.43.05 1.07.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.07-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.16 1.77c-.55.56-1.11.9-1.77 1.16-.64.25-1.36.42-2.43.47-1.07.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.07-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.16 4.9 4.9 0 0 1-1.16-1.77c-.25-.64-.42-1.36-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.07.22-1.79.47-2.43.26-.66.6-1.22 1.16-1.77.55-.56 1.11-.9 1.77-1.16.64-.25 1.36-.42 2.43-.47C8.94 2.01 9.28 2 12 2Zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4Zm5.2-8.4a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Z",
+  },
+  {
+    label: "X",
+    path: "M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.01 4.13H5.04l12.04 15.64Z",
+  },
+  {
+    label: "YouTube",
+    path: "M23.5 6.5a3 3 0 0 0-2.11-2.12C19.5 3.86 12 3.86 12 3.86s-7.5 0-9.39.52A3 3 0 0 0 .5 6.5 31.3 31.3 0 0 0 0 12a31.3 31.3 0 0 0 .5 5.5 3 3 0 0 0 2.11 2.12c1.89.52 9.39.52 9.39.52s7.5 0 9.39-.52a3 3 0 0 0 2.11-2.12A31.3 31.3 0 0 0 24 12a31.3 31.3 0 0 0-.5-5.5ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z",
+  },
+];
+
 export function Footer() {
+  const trust = [
+    { icon: Truck, label: "Fast Free Shipping" },
+    { icon: ShieldCheck, label: "1-Year Warranty" },
+    { icon: Headphones, label: "Expert Support" },
+    { icon: CreditCard, label: "Secure Checkout" },
+  ];
+
   return (
-    <footer className="border-t border-slate-200 bg-slate-900 text-slate-300">
-      <div className="container-page grid gap-8 py-12 md:grid-cols-4">
-        <div>
-          <h3 className="mb-3 text-lg font-bold text-white">{SITE_NAME}</h3>
-          <p className="text-sm leading-relaxed">
-            Expert two-way radio solutions with fast shipping, programming support,
-            and industry-ready kits.
+    <footer className="bg-slate-950 text-slate-300">
+      {/* Trust strip */}
+      <div className="border-b border-white/10">
+        <div className="container-page grid gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+          {trust.map((t) => (
+            <div key={t.label} className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-white/5 text-red-400">
+                <t.icon className="h-5 w-5" />
+              </span>
+              <span className="text-sm font-semibold text-white">{t.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="container-page grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <Link href="/" className="flex items-center gap-2 font-extrabold text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-600 text-white">
+              <Radio className="h-6 w-6" />
+            </span>
+            <span className="text-lg">{SITE_NAME}</span>
+          </Link>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
+            Expert two-way radio solutions with fast shipping, professional
+            programming, and industry-ready kits — trusted by teams across the US
+            and Canada for over 25 years.
           </p>
+          <div className="mt-6 flex gap-3">
+            {socials.map((s) => (
+              <a
+                key={s.label}
+                href="#"
+                className="grid h-9 w-9 place-items-center rounded-lg bg-white/5 text-slate-400 transition hover:bg-red-600 hover:text-white"
+                aria-label={s.label}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                  <path d={s.path} />
+                </svg>
+              </a>
+            ))}
+          </div>
         </div>
+
         <div>
-          <h4 className="mb-3 font-semibold text-white">Shop</h4>
-          <ul className="space-y-2 text-sm">
-            <li><Link href="/categories/business-radios" className="hover:text-white">Business Radios</Link></li>
-            <li><Link href="/categories/commercial-radios" className="hover:text-white">Commercial Radios</Link></li>
-            <li><Link href="/categories/accessories" className="hover:text-white">Accessories</Link></li>
-            <li><Link href="/search" className="hover:text-white">All Products</Link></li>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
+            Shop
+          </h4>
+          <ul className="space-y-3 text-sm">
+            <li><Link href="/categories/business-radios" className="transition hover:text-white">Business Radios</Link></li>
+            <li><Link href="/categories/commercial-radios" className="transition hover:text-white">Commercial Radios</Link></li>
+            <li><Link href="/categories/nationwide-radios" className="transition hover:text-white">Nationwide Radios</Link></li>
+            <li><Link href="/categories/accessories" className="transition hover:text-white">Accessories</Link></li>
+            <li><Link href="/search" className="transition hover:text-white">All Products</Link></li>
           </ul>
         </div>
+
         <div>
-          <h4 className="mb-3 font-semibold text-white">Support</h4>
-          <ul className="space-y-2 text-sm">
-            <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
-            <li><Link href="/shipping" className="hover:text-white">Shipping Policy</Link></li>
-            <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
+            Support
+          </h4>
+          <ul className="space-y-3 text-sm">
+            <li><Link href="/contact" className="transition hover:text-white">Contact Us</Link></li>
+            <li><Link href="/shipping" className="transition hover:text-white">Shipping Policy</Link></li>
+            <li><Link href="/about" className="transition hover:text-white">About Us</Link></li>
+            <li><Link href="/account" className="transition hover:text-white">My Account</Link></li>
+            <li><Link href="/account/orders" className="transition hover:text-white">Order History</Link></li>
           </ul>
         </div>
+
         <div>
-          <h4 className="mb-3 font-semibold text-white">Contact</h4>
-          <ul className="space-y-2 text-sm">
-            <li>{SITE_PHONE}</li>
-            <li>{SITE_EMAIL}</li>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
+            Get in Touch
+          </h4>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-red-400" />
+              <a href={`tel:${SITE_PHONE.replace(/[^\d+]/g, "")}`} className="transition hover:text-white">
+                {SITE_PHONE}
+              </a>
+            </li>
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-red-400" />
+              <a href={`mailto:${SITE_EMAIL}`} className="transition hover:text-white">
+                {SITE_EMAIL}
+              </a>
+            </li>
+            <li className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+              <span>Serving the US &amp; Canada nationwide</span>
+            </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
+
+      <div className="border-t border-white/10">
+        <div className="container-page flex flex-col items-center justify-between gap-3 py-5 text-xs text-slate-500 sm:flex-row">
+          <p>© {new Date().getFullYear()} {SITE_NAME}. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link href="/shipping" className="transition hover:text-white">Shipping</Link>
+            <Link href="/contact" className="transition hover:text-white">Contact</Link>
+            <span>Powered by PayPal · CAD / USD</span>
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { auth } from "@/lib/auth";
-import { getOrCreateCart } from "@/lib/cart";
+import { getCart } from "@/lib/cart";
 import { getCurrency } from "@/lib/currency-server";
 import { getProductPrice, getVariantPrice } from "@/lib/currency";
 import { getShippingCents } from "@/lib/constants";
 
 export default async function CheckoutPage() {
   const session = await auth();
-  const [cart, currency] = await Promise.all([getOrCreateCart(), getCurrency()]);
+  const [cart, currency] = await Promise.all([getCart(), getCurrency()]);
 
-  if (!cart.items.length) {
+  if (!cart?.items.length) {
     redirect("/cart");
   }
 
