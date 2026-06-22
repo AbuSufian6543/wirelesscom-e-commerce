@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rapid Radio Gear - E-Commerce Platform
 
-## Getting Started
+Custom full-stack Next.js e-commerce store for two-way radios and accessories.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Conversion-focused storefront (hero, trust badges, featured products, categories, industries, testimonials, newsletter)
+- Product catalog with search, categories, industries, and product detail pages
+- Product variants/options with CAD/USD pricing and sale prices
+- Guest + account checkout with PayPal
+- Customer accounts with order history
+- Admin panel for products, categories, industries, and orders
+
+## Tech Stack
+
+- Next.js 16 (App Router) + TypeScript
+- Tailwind CSS
+- PostgreSQL + Prisma
+- Auth.js (NextAuth)
+- PayPal Server SDK
+- Docker Compose
+
+## Prerequisites
+
+- Node.js 20+
+- Docker Desktop (Windows 11 dev) or Docker Engine (Debian prod)
+- PayPal Developer account (sandbox keys for testing)
+
+## Windows 11 Development
+
+### Option A: Docker (recommended)
+
+```powershell
+# Copy environment file
+copy .env.example .env
+
+# Start app + database
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Option B: Local Node + Docker Postgres only
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+copy .env.example .env
 
-## Learn More
+# Start only Postgres
+docker compose up db -d
 
-To learn more about Next.js, take a look at the following resources:
+# Install deps and setup DB
+npm install
+npx prisma generate
+npx prisma db push
+npm run db:seed
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Run dev server
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Default Admin Login
 
-## Deploy on Vercel
+After seeding:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Email: `admin@example.com`
+- Password: `admin123`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Admin panel: http://localhost:3000/admin
+
+Change credentials via `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` before seeding.
+
+## PayPal Setup
+
+1. Create a PayPal Developer app at https://developer.paypal.com
+2. Add sandbox credentials to `.env`:
+
+```env
+PAYPAL_CLIENT_ID=your-sandbox-client-id
+PAYPAL_CLIENT_SECRET=your-sandbox-secret
+PAYPAL_MODE=sandbox
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=your-sandbox-client-id
+```
+
+## Debian Production Deployment
+
+On your Debian server with a public IP:
+
+```bash
+# Clone/copy project to server
+git clone <your-repo> radio-store
+cd radio-store
+
+# Configure environment
+cp .env.example .env
+nano .env
+```
+
+Set production values:
+
+```env
+AUTH_SECRET=<long-random-string>
+NEXTAUTH_URL=https://yourdomain.com
+NEXT_PUBLIC_APP_URL=https://yourdomain.com
+DOMAIN=yourdomain.com
+PAYPAL_MODE=live
+PAYPAL_CLIENT_ID=...
+PAYPAL_CLIENT_SECRET=...
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=...
+POSTGRES_PASSWORD=strong-password
+```
+
+Deploy with Caddy reverse proxy:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Caddy will obtain TLS certificates automatically when `DOMAIN` points to your server.
+
+## Useful Commands
+
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run db:migrate   # Run Prisma migrations
+npm run db:seed      # Seed sample data
+npm run db:studio    # Open Prisma Studio
+```
+
+## Project Structure
+
+```
+src/
+  app/
+    (store)/          # Storefront pages
+    admin/            # Admin panel
+    actions/          # Server actions
+    api/auth/         # Auth.js routes
+  components/         # UI components
+  lib/                # Utilities, auth, prisma, paypal
+prisma/
+  schema.prisma       # Database schema
+  seed.ts             # Sample data
+```
+
+## Environment Variables
+
+See `.env.example` for all required variables.
+
+## Notes
+
+- Multi-currency: CAD and USD prices are stored per product (no live FX).
+- Shipping uses flat-rate placeholders; configure in `src/lib/constants.ts`.
+- Sized for ~5k users on a single Dockerized server.

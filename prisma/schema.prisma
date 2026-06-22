@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum Currency {
+  CAD
+  USD
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cart   Cart?
+  orders Order[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductCategory[]
+}
+
+model Industry {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductIndustry[]
+}
+
+model Product {
+  id               String        @id @default(cuid())
+  name             String
+  slug             String        @unique
+  brand            String?
+  description      String        @db.Text
+  shortDescription String?
+  images           String[]
+  status           ProductStatus @default(DRAFT)
+  isNewArrival     Boolean       @default(false)
+  isBestSeller     Boolean       @default(false)
+  priceCadCents    Int
+  priceUsdCents    Int
+  saleCadCents     Int?
+  saleUsdCents     Int?
+  hasVariants      Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  options    ProductOption[]
+  variants   ProductVariant[]
+  categories ProductCategory[]
+  industries ProductIndustry[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    Review[]
+}
+
+model ProductOption {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values  ProductOptionValue[]
+}
+
+model ProductOptionValue {
+  id       String @id @default(cuid())
+  optionId String
+  value    String
+  position Int    @default(0)
+
+  option         ProductOption          @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  variantOptions ProductVariantOption[]
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  sku           String  @unique
+  stock         Int     @default(0)
+  priceCadCents Int?
+  priceUsdCents Int?
+  saleCadCents  Int?
+  saleUsdCents  Int?
+  image         String?
+
+  product    Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options    ProductVariantOption[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+}
+
+model ProductVariantOption {
+  id            String @id @default(cuid())
+  variantId     String
+  optionValueId String
+
+  variant     ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue ProductOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, optionValueId])
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model ProductIndustry {
+  productId  String
+  industryId String
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  industry Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, industryId])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String?  @unique
+  guestId   String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  variantId String?
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, productId, variantId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String?
+  guestEmail      String?
+  status          OrderStatus @default(PENDING)
+  currency        Currency
+  subtotalCents   Int
+  shippingCents   Int
+  taxCents        Int         @default(0)
+  totalCents      Int
+  paypalOrderId   String?
+  paypalCaptureId String?
+  shippingName    String
+  shippingLine1   String
+  shippingLine2   String?
+  shippingCity    String
+  shippingState   String
+  shippingPostal  String
+  shippingCountry String
+  billingName     String?
+  billingLine1    String?
+  billingLine2    String?
+  billingCity     String?
+  billingState    String?
+  billingPostal   String?
+  billingCountry  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user  User?       @relation(fields: [userId], references: [id])
+  items OrderItem[]
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  productId      String
+  variantId      String?
+  productName    String
+  variantLabel   String?
+  sku            String?
+  quantity       Int
+  unitPriceCents Int
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String?
+  author    String
+  content   String   @db.Text
+  rating    Int      @default(5)
+  featured  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
