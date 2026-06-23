@@ -4,12 +4,30 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateCart } from "@/lib/cart";
 
+async function getStockLimit(productId: string, variantId: string | null) {
+  if (variantId) {
+    const variant = await prisma.productVariant.findUnique({
+      where: { id: variantId },
+      select: { stock: true },
+    });
+    return variant?.stock ?? 0;
+  }
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { stock: true },
+  });
+  return product?.stock ?? 0;
+}
+
 export async function addToCartAction(formData: FormData) {
   const productId = String(formData.get("productId"));
   const variantId = formData.get("variantId")
     ? String(formData.get("variantId"))
     : null;
-  const quantity = Math.max(1, Number(formData.get("quantity") ?? 1));
+  const requested = Math.max(1, Number(formData.get("quantity") ?? 1));
+  const stockLimit = await getStockLimit(productId, variantId);
+  if (stockLimit <= 0) return;
 
   const cart = await getOrCreateCart();
 
@@ -21,10 +39,15 @@ export async function addToCartAction(formData: FormData) {
     },
   });
 
+  const nextQuantity = Math.min(
+    stockLimit,
+    (existing?.quantity ?? 0) + requested,
+  );
+
   if (existing) {
     await prisma.cartItem.update({
       where: { id: existing.id },
-      data: { quantity: existing.quantity + quantity },
+      data: { quantity: nextQuantity },
     });
   } else {
     await prisma.cartItem.create({
@@ -32,7 +55,7 @@ export async function addToCartAction(formData: FormData) {
         cartId: cart.id,
         productId,
         variantId,
-        quantity,
+        quantity: Math.min(requested, stockLimit),
       },
     });
   }
@@ -48,9 +71,16 @@ export async function updateCartItemAction(formData: FormData) {
   if (quantity === 0) {
     await prisma.cartItem.delete({ where: { id: itemId } });
   } else {
+    const item = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      select: { variantId: true, productId: true },
+    });
+    if (!item) return;
+
+    const stockLimit = await getStockLimit(item.productId, item.variantId);
     await prisma.cartItem.update({
       where: { id: itemId },
-      data: { quantity },
+      data: { quantity: Math.min(quantity, stockLimit) },
     });
   }
 

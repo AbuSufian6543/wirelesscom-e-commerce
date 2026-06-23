@@ -5,7 +5,8 @@ import { getCurrency } from "@/lib/currency-server";
 import { getProductPrice, getVariantPrice } from "@/lib/currency";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { removeCartItemAction, updateCartItemAction } from "@/app/actions/cart";
+import { CartItemQuantity } from "@/components/cart/cart-item-quantity";
+import { removeCartItemAction } from "@/app/actions/cart";
 import { getShippingCents } from "@/lib/constants";
 
 export default async function CartPage() {
@@ -68,22 +69,12 @@ export default async function CartPage() {
                   <p className="mt-1 font-medium">
                     {formatPrice(pricing.currentCents, currency)}
                   </p>
-                  <div className="mt-auto flex items-center gap-3">
-                    <form action={updateCartItemAction} className="flex items-center gap-2">
-                      <input type="hidden" name="itemId" value={item.id} />
-                      <input type="hidden" name="quantity" value={item.quantity - 1} />
-                      <Button type="submit" variant="outline" size="sm">
-                        -
-                      </Button>
-                    </form>
-                    <span className="text-sm font-medium">{item.quantity}</span>
-                    <form action={updateCartItemAction} className="flex items-center gap-2">
-                      <input type="hidden" name="itemId" value={item.id} />
-                      <input type="hidden" name="quantity" value={item.quantity + 1} />
-                      <Button type="submit" variant="outline" size="sm">
-                        +
-                      </Button>
-                    </form>
+                  <div className="mt-auto flex flex-wrap items-center gap-3">
+                    <CartItemQuantity
+                      itemId={item.id}
+                      quantity={item.quantity}
+                      max={item.variant?.stock ?? item.product.stock}
+                    />
                     <form action={removeCartItemAction}>
                       <input type="hidden" name="itemId" value={item.id} />
                       <Button type="submit" variant="ghost" size="sm">

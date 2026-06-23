@@ -5,19 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Plus, SlidersHorizontal } from "lucide-react";
 import { addToCartAction } from "@/app/actions/cart";
+import { QuantitySelector } from "@/components/products/quantity-selector";
 
 export function QuickAddButton({
   productId,
   slug,
   hasVariants,
+  stock = 0,
 }: {
   productId: string;
   slug: string;
   hasVariants: boolean;
+  stock?: number;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [added, setAdded] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   if (hasVariants) {
     return (
@@ -34,7 +38,7 @@ export function QuickAddButton({
   function handleAdd() {
     const formData = new FormData();
     formData.set("productId", productId);
-    formData.set("quantity", "1");
+    formData.set("quantity", String(quantity));
     startTransition(async () => {
       await addToCartAction(formData);
       setAdded(true);
@@ -44,25 +48,37 @@ export function QuickAddButton({
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleAdd}
-      disabled={pending}
-      className={`relative z-10 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-70 ${
-        added ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
-      }`}
-    >
-      {added ? (
-        <>
-          <Check className="h-4 w-4" /> Added
-        </>
-      ) : pending ? (
-        "Adding..."
-      ) : (
-        <>
-          <Plus className="h-4 w-4" /> Add to Cart
-        </>
-      )}
-    </button>
+    <div className="relative z-10 space-y-2">
+      <QuantitySelector
+        value={quantity}
+        onChange={setQuantity}
+        min={1}
+        max={Math.max(1, stock)}
+        size="sm"
+        id={`quick-qty-${productId}`}
+      />
+      <button
+        type="button"
+        onClick={handleAdd}
+        disabled={pending || stock <= 0}
+        className={`flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-70 ${
+          added ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
+        }`}
+      >
+        {added ? (
+          <>
+            <Check className="h-4 w-4" /> Added
+          </>
+        ) : pending ? (
+          "Adding..."
+        ) : stock <= 0 ? (
+          "Out of Stock"
+        ) : (
+          <>
+            <Plus className="h-4 w-4" /> Add to Cart
+          </>
+        )}
+      </button>
+    </div>
   );
 }

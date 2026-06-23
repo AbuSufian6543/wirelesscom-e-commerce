@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -33,6 +33,47 @@ export function Header({
   const [openMenu, setOpenMenu] = useState<"categories" | "industries" | null>(
     null,
   );
+  const [renderMenu, setRenderMenu] = useState<"categories" | "industries" | null>(
+    null,
+  );
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const unmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (openMenu) return;
+
+    if (!renderMenu) return;
+
+    unmountTimerRef.current = setTimeout(() => setRenderMenu(null), 250);
+    return () => {
+      if (unmountTimerRef.current) {
+        clearTimeout(unmountTimerRef.current);
+        unmountTimerRef.current = null;
+      }
+    };
+  }, [openMenu, renderMenu]);
+
+  function clearCloseTimer() {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }
+
+  function openMegaMenu(menu: "categories" | "industries") {
+    clearCloseTimer();
+    if (unmountTimerRef.current) {
+      clearTimeout(unmountTimerRef.current);
+      unmountTimerRef.current = null;
+    }
+    setOpenMenu(menu);
+    setRenderMenu(menu);
+  }
+
+  function scheduleCloseMegaMenu() {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => setOpenMenu(null), 120);
+  }
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -145,13 +186,13 @@ export function Header({
 
       {/* Desktop nav with mega menus */}
       <nav
-        className="hidden border-b border-slate-200 bg-white lg:block"
-        onMouseLeave={() => setOpenMenu(null)}
+        className="relative hidden border-b border-slate-200 bg-white lg:block"
+        onMouseLeave={scheduleCloseMegaMenu}
       >
         <div className="container-page flex items-center gap-1">
           <Link
             href="/search"
-            className="px-4 py-3 text-sm font-semibold text-slate-700 transition hover:text-blue-600"
+            className="px-4 py-3 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:text-blue-600"
           >
             All Products
           </Link>
@@ -159,12 +200,12 @@ export function Header({
           <MegaTrigger
             label="Categories"
             active={openMenu === "categories"}
-            onEnter={() => setOpenMenu("categories")}
+            onEnter={() => openMegaMenu("categories")}
           />
           <MegaTrigger
             label="Industries"
             active={openMenu === "industries"}
-            onEnter={() => setOpenMenu("industries")}
+            onEnter={() => openMegaMenu("industries")}
           />
 
           <Link
@@ -187,24 +228,35 @@ export function Header({
           </Link>
         </div>
 
-        {openMenu && (
+        {renderMenu && (
           <div
-            className="absolute inset-x-0 border-t border-slate-100 bg-white shadow-xl"
-            onMouseEnter={() => setOpenMenu(openMenu)}
+            className={`absolute inset-x-0 top-full z-50 border-t border-slate-100 bg-white shadow-xl transition-all duration-250 ease-out ${
+              openMenu
+                ? "mega-menu-panel translate-y-0 opacity-100"
+                : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+            onMouseEnter={clearCloseTimer}
+            onMouseLeave={scheduleCloseMegaMenu}
           >
-            <div className="container-page grid grid-cols-2 gap-x-8 gap-y-2 py-6 md:grid-cols-3">
-              {(openMenu === "categories" ? categories : industries).map((item) => (
+            <div
+              key={renderMenu}
+              className="container-page grid grid-cols-2 gap-x-8 gap-y-2 py-6 md:grid-cols-3"
+            >
+              {(renderMenu === "categories" ? categories : industries).map(
+                (item, index) => (
                 <Link
                   key={item.slug}
-                  href={`/${openMenu}/${item.slug}`}
+                  href={`/${renderMenu}/${item.slug}`}
                   onClick={() => setOpenMenu(null)}
-                  className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600"
+                  className="mega-menu-item group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-50 hover:text-blue-600"
+                  style={{ animationDelay: `${index * 35}ms` }}
                 >
                   {item.name}
-                  <ChevronDown className="h-4 w-4 -rotate-90 text-slate-300 transition group-hover:text-blue-500" />
+                  <ChevronDown className="h-4 w-4 -rotate-90 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-blue-500" />
                 </Link>
-              ))}
-              {(openMenu === "categories" ? categories : industries).length ===
+              ),
+              )}
+              {(renderMenu === "categories" ? categories : industries).length ===
                 0 && (
                 <p className="px-3 py-2 text-sm text-slate-400">Coming soon.</p>
               )}
@@ -291,14 +343,17 @@ function MegaTrigger({
 }) {
   return (
     <button
+      type="button"
       onMouseEnter={onEnter}
-      className={`flex items-center gap-1 px-4 py-3 text-sm font-semibold transition ${
+      className={`flex items-center gap-1 px-4 py-3 text-sm font-semibold transition-colors duration-200 ${
         active ? "text-blue-600" : "text-slate-700 hover:text-blue-600"
       }`}
     >
       {label}
       <ChevronDown
-        className={`h-4 w-4 transition ${active ? "rotate-180" : ""}`}
+        className={`h-4 w-4 transition-transform duration-300 ease-out ${
+          active ? "rotate-180" : ""
+        }`}
       />
     </button>
   );

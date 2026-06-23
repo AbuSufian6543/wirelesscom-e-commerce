@@ -112,6 +112,36 @@ body {
   animation: marquee 28s linear infinite;
 }
 
+@keyframes megaMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes megaMenuItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mega-menu-panel {
+  animation: megaMenuIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mega-menu-item {
+  animation: megaMenuItemIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Hide scrollbar for marquees */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

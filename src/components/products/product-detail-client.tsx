@@ -1,18 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   Star,
   Check,
-  Minus,
-  Plus,
   Truck,
   ShieldCheck,
   Headphones,
   Radio,
 } from "lucide-react";
 import { addToCartAction } from "@/app/actions/cart";
+import { QuantitySelector } from "@/components/products/quantity-selector";
 import { formatPrice } from "@/lib/utils";
 import {
   getProductPrice,
@@ -57,6 +56,7 @@ type ProductDetailClientProps = {
     specifications?: string | null;
     images: string[];
     hasVariants: boolean;
+    stock: number;
     priceCadCents: number;
     priceUsdCents: number;
     saleCadCents?: number | null;
@@ -106,8 +106,19 @@ export function ProductDetailClient({
 
   const allOptionsChosen =
     !product.hasVariants || options.every((o) => selectedValues[o.id]);
-  const inStock = selectedVariant ? selectedVariant.stock > 0 : true;
+  const inStock = product.hasVariants
+    ? selectedVariant
+      ? selectedVariant.stock > 0
+      : false
+    : product.stock > 0;
   const canAdd = allOptionsChosen && inStock && (!product.hasVariants || selectedVariant);
+  const maxQuantity = product.hasVariants
+    ? (selectedVariant?.stock ?? 1)
+    : product.stock;
+
+  useEffect(() => {
+    setQuantity((q) => Math.min(Math.max(1, q), maxQuantity));
+  }, [maxQuantity, selectedVariant?.id]);
 
   const specRows = useMemo(() => {
     if (!product.specifications) return [];
@@ -152,7 +163,7 @@ export function ProductDetailClient({
       <div className="grid gap-10 lg:grid-cols-2">
         {/* Gallery */}
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-[#f8fafc]">
             <Image
               src={image}
               alt={product.name}
@@ -172,7 +183,7 @@ export function ProductDetailClient({
                 <button
                   key={i}
                   onClick={() => setActiveImage(i)}
-                  className={`relative h-20 w-20 overflow-hidden rounded-xl border bg-white transition ${
+                  className={`relative h-20 w-20 overflow-hidden rounded-xl border bg-[#f8fafc] transition ${
                     activeImage === i
                       ? "border-blue-500 ring-2 ring-blue-100"
                       : "border-slate-200 hover:border-slate-300"
@@ -280,30 +291,15 @@ export function ProductDetailClient({
           </div>
 
           {/* Quantity + Add to cart */}
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex h-12 w-fit items-center rounded-lg border border-slate-300">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="grid h-full w-11 place-items-center text-slate-500 hover:text-slate-900"
-                aria-label="Decrease quantity"
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-10 text-center text-sm font-bold">{quantity}</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity((q) =>
-                    Math.min(selectedVariant?.stock ?? 99, q + 1),
-                  )
-                }
-                className="grid h-full w-11 place-items-center text-slate-500 hover:text-slate-900"
-                aria-label="Increase quantity"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <QuantitySelector
+              label="Quantity"
+              value={quantity}
+              onChange={setQuantity}
+              min={1}
+              max={maxQuantity}
+              id="product-quantity"
+            />
 
             <button
               type="button"
@@ -334,10 +330,22 @@ export function ProductDetailClient({
               SKU: <span className="font-medium text-slate-700">{selectedVariant.sku}</span>
               {selectedVariant.stock > 0 ? (
                 <span className="ml-3 inline-flex items-center gap-1 text-green-600">
-                  <Check className="h-4 w-4" /> In stock
+                  <Check className="h-4 w-4" /> In stock ({selectedVariant.stock} available)
                 </span>
               ) : (
-                <span className="ml-3 text-blue-600">Out of stock</span>
+                <span className="ml-3 text-red-600">Out of stock</span>
+              )}
+            </p>
+          )}
+
+          {!product.hasVariants && (
+            <p className="mt-3 text-sm text-slate-500">
+              {product.stock > 0 ? (
+                <span className="inline-flex items-center gap-1 text-green-600">
+                  <Check className="h-4 w-4" /> In stock ({product.stock} available)
+                </span>
+              ) : (
+                <span className="text-red-600">Out of stock</span>
               )}
             </p>
           )}

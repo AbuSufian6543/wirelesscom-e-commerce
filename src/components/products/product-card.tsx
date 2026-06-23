@@ -19,6 +19,7 @@ type ProductCardProps = {
     isNewArrival: boolean;
     isBestSeller: boolean;
     hasVariants: boolean;
+    stock: number;
   };
   currency: Currency;
 };
@@ -32,7 +33,7 @@ export function ProductCard({ product, currency }: ProductCardProps) {
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl">
-      <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="relative aspect-square overflow-hidden bg-[#f8fafc]">
         <Image
           src={image}
           alt={product.name}
@@ -103,6 +104,7 @@ export function ProductCard({ product, currency }: ProductCardProps) {
             productId={product.id}
             slug={product.slug}
             hasVariants={product.hasVariants}
+            stock={product.stock}
           />
         </div>
       </div>

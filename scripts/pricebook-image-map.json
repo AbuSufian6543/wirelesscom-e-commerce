@@ -1,0 +1,32 @@
+{
+  "_comment": "page is 0-based (PyMuPDF). strategy: largest | imageIndex. imageIndex sorts embedded images by area descending.",
+  "products": [
+    { "slug": "hytera-hp782-digital-radio", "page": 3, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp702-digital-radio", "page": 5, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp682-digital-radio", "page": 11, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp602-digital-radio", "page": 12, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp56x-digital-radio", "page": 17, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp50x-digital-radio", "page": 18, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-pdc680-dual-mode-radio", "page": 23, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-bp562-business-radio", "page": 28, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-bp512-business-radio", "page": 29, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-bd552i-business-radio", "page": 33, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-bd612i-business-radio", "page": 34, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-bd502i-business-radio", "page": 35, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-pd482i-digital-radio", "page": 40, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-pd402i-digital-radio", "page": 41, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-pd362i-digital-radio", "page": 45, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hm782-mobile-radio", "page": 48, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hm682-mobile-radio", "page": 54, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-md622i-mobile-radio", "page": 61, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp792ex-iia-radio", "page": 64, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hp712ex-iia-radio", "page": 70, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-hr1062-repeater", "page": 88, "strategy": "renderCrop", "cropRect": [0.52, 0.17, 0.98, 0.43] },
+    { "slug": "hytera-hr652-repeater", "page": 91, "strategy": "largest", "minWidth": 120 },
+    { "slug": "hytera-sm16a1-palm-microphone", "page": 50, "strategy": "imageIndex", "imageIndex": 1, "minWidth": 40 },
+    { "slug": "hytera-sm27w2-bluetooth-rsm", "page": 26, "strategy": "imageIndex", "imageIndex": 0, "minWidth": 40 },
+    { "slug": "hytera-ehw08-bluetooth-earpiece", "page": 25, "strategy": "imageIndex", "imageIndex": 0, "minWidth": 40 },
+    { "slug": "hytera-bp2403-battery", "page": 7, "strategy": "imageIndex", "imageIndex": 3, "minWidth": 40 },
+    { "slug": "hytera-ch10l30-charger", "page": 7, "strategy": "imageIndex", "imageIndex": 0, "minWidth": 40 }
+  ]
+}

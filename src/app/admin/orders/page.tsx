@@ -1,78 +1,194 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
+import { OrderStatusBadge } from "@/components/admin/order-status-badge";
+import { OrderStatusControl } from "@/components/admin/order-status-control";
+import { ORDER_STATUS_LIST, ORDER_STATUS_META } from "@/lib/order-status";
+import type { OrderStatus, Prisma } from "@prisma/client";
 
-export default async function AdminOrdersPage() {
+export const dynamic = "force-dynamic";
+
+function isOrderStatus(value: string | undefined): value is OrderStatus {
+  return !!value && (ORDER_STATUS_LIST as string[]).includes(value);
+}
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/admin/login");
 
-  const orders = await prisma.order.findMany({
-    include: { items: true, user: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const { status } = await searchParams;
+  const activeStatus = isOrderStatus(status) ? status : null;
+
+  const where: Prisma.OrderWhereInput = activeStatus
+    ? { status: activeStatus }
+    : {};
+
+  const [orders, statusGroups, totalCount] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: { items: true, user: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.order.groupBy({ by: ["status"], _count: { _all: true } }),
+    prisma.order.count(),
+  ]);
+
+  const countFor = (s: OrderStatus) =>
+    statusGroups.find((g) => g.status === s)?._count._all ?? 0;
+
+  const filters: Array<{ key: OrderStatus | "ALL"; label: string; count: number }> = [
+    { key: "ALL", label: "All", count: totalCount },
+    ...ORDER_STATUS_LIST.map((s) => ({
+      key: s,
+      label: ORDER_STATUS_META[s].label,
+      count: countFor(s),
+    })),
+  ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Orders</h1>
-      <div className="mt-6 space-y-4">
-        {orders.length === 0 ? (
-          <p className="text-slate-600">No orders yet.</p>
-        ) : (
-          orders.map((order) => (
-            <div
-              key={order.id}
-              className="rounded-xl border border-slate-200 bg-white p-6"
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Orders</h1>
+          <p className="mt-1 text-slate-600">
+            {activeStatus
+              ? `${orders.length} ${ORDER_STATUS_META[activeStatus].label.toLowerCase()} ${orders.length === 1 ? "order" : "orders"}`
+              : `${totalCount} total ${totalCount === 1 ? "order" : "orders"}`}
+          </p>
+        </div>
+        <Link href="/admin" className="text-sm font-medium text-blue-600 hover:underline">
+          ← Back to dashboard
+        </Link>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2">
+        {filters.map((f) => {
+          const href = f.key === "ALL" ? "/admin/orders" : `/admin/orders?status=${f.key}`;
+          const isActive =
+            f.key === "ALL" ? !activeStatus : activeStatus === f.key;
+          return (
+            <Link
+              key={f.key}
+              href={href}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                isActive
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-bold">{order.orderNumber}</p>
-                  <p className="text-sm text-slate-500">
-                    {order.user?.email ?? order.guestEmail ?? "Guest"} ·{" "}
-                    {new Date(order.createdAt).toLocaleString()}
-                  </p>
+              {f.label}
+              <span
+                className={`rounded-full px-1.5 text-xs font-bold ${
+                  isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {f.count}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="space-y-4">
+        {orders.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+            No orders {activeStatus ? `with status "${ORDER_STATUS_META[activeStatus].label}"` : "yet"}.
+          </div>
+        ) : (
+          orders.map((order) => {
+            const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
+            return (
+              <div
+                key={order.id}
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-lg font-bold text-slate-900">{order.orderNumber}</p>
+                      <OrderStatusBadge status={order.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {order.user?.email ?? order.guestEmail ?? "Guest"} ·{" "}
+                      {new Date(order.createdAt).toLocaleString()} ·{" "}
+                      {itemCount} {itemCount === 1 ? "item" : "items"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-slate-900">
+                        {formatPrice(order.totalCents, order.currency)}
+                      </p>
+                      <p className="text-xs text-slate-400">{order.currency}</p>
+                    </div>
+                    <OrderStatusControl orderId={order.id} status={order.status} />
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">
-                    {formatPrice(order.totalCents, order.currency)}
-                  </p>
-                  <p className="text-sm capitalize">{order.status.toLowerCase()}</p>
+
+                <div className="mt-5 grid gap-5 border-t border-slate-100 pt-5 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Shipping
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {order.shippingName}
+                      <br />
+                      {order.shippingLine1}
+                      {order.shippingLine2 && (
+                        <>
+                          <br />
+                          {order.shippingLine2}
+                        </>
+                      )}
+                      <br />
+                      {order.shippingCity}, {order.shippingState} {order.shippingPostal}
+                      <br />
+                      {order.shippingCountry}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Items
+                    </p>
+                    <ul className="mt-1 space-y-1 text-sm text-slate-600">
+                      {order.items.map((item) => (
+                        <li key={item.id} className="flex justify-between gap-3">
+                          <span>
+                            {item.quantity}× {item.productName}
+                            {item.variantLabel ? ` (${item.variantLabel})` : ""}
+                          </span>
+                          <span className="shrink-0 font-medium text-slate-700">
+                            {formatPrice(item.unitPriceCents * item.quantity, order.currency)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-sm">
+                      <div className="flex justify-between text-slate-500">
+                        <span>Subtotal</span>
+                        <span>{formatPrice(order.subtotalCents, order.currency)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-500">
+                        <span>Shipping</span>
+                        <span>
+                          {order.shippingCents === 0
+                            ? "FREE"
+                            : formatPrice(order.shippingCents, order.currency)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div>
-                  <p className="text-sm font-semibold">Shipping</p>
-                  <p className="text-sm text-slate-600">
-                    {order.shippingName}
-                    <br />
-                    {order.shippingLine1}
-                    {order.shippingLine2 && (
-                      <>
-                        <br />
-                        {order.shippingLine2}
-                      </>
-                    )}
-                    <br />
-                    {order.shippingCity}, {order.shippingState}{" "}
-                    {order.shippingPostal}
-                    <br />
-                    {order.shippingCountry}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Items</p>
-                  <ul className="text-sm text-slate-600">
-                    {order.items.map((item) => (
-                      <li key={item.id}>
-                        {item.quantity}x {item.productName}
-                        {item.variantLabel ? ` (${item.variantLabel})` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

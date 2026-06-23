@@ -125,6 +125,7 @@ npm run build        # Production build
 npm run db:migrate   # Run Prisma migrations
 npm run db:seed      # Seed sample data
 npm run db:studio    # Open Prisma Studio
+npm run extract:product-images -- --pdf "path/to/pricebook.pdf"  # Extract images from PDF
 ```
 
 ## Project Structure
@@ -146,6 +147,45 @@ prisma/
 ## Environment Variables
 
 See `.env.example` for all required variables.
+
+## Product images (from pricebook PDF)
+
+Product photos live in `public/products/` as WebP files extracted from the Hytera DMR Pricebook PDF. They are committed to the repo so Docker/production does not need the PDF at runtime.
+
+The extractor post-processes each image: PDF black/white backgrounds are replaced with off-white (`#f8fafc`), letterboxing is trimmed, and output is normalized to a 900×900 square canvas.
+
+To re-extract after a pricebook update:
+
+```powershell
+# One-time: install Python deps (use Python 3.10+)
+python -m pip install pymupdf pillow
+
+# Extract images (adjust PDF path)
+python scripts/extract-pricebook-images.py --pdf "C:\path\to\Hytera DMR Pricebook 2026 1-28.pdf"
+
+# Or via npm (pass --pdf after the script name)
+npm run extract:product-images -- --pdf "C:\path\to\pricebook.pdf"
+```
+
+Page-to-product mapping is in `scripts/pricebook-image-map.json`. Debug a PDF page:
+
+```powershell
+python scripts/extract-pricebook-images.py --pdf "path\to\pricebook.pdf" --list-page 3
+```
+
+After extracting or updating images, re-seed so the database picks up paths:
+
+```bash
+docker compose exec app npx prisma db seed
+# or locally:
+npm run db:seed
+```
+
+To re-run post-processing on existing `public/products/*.webp` without the PDF:
+
+```powershell
+python scripts/extract-pricebook-images.py --postprocess-only
+```
 
 ## Notes
 

@@ -10,6 +10,10 @@ const usdCents = (dollars: number) => Math.round(dollars * USD_RATE) * 100;
 
 const PROGRAMMING_VALUES = ["Default Frequency", "Custom Frequency"];
 
+function productImages(slug: string): string[] {
+  return [`/products/${slug}.webp`];
+}
+
 type Band = { label: string; sku: string; cad: number; stock?: number };
 
 type SeedOption = { name: string; values: string[] };
@@ -36,6 +40,8 @@ type SeedProduct = {
   // Accessories set a flat price directly:
   priceCad?: number;
   saleCad?: number | null;
+  // Simple (non-variant) product stock:
+  stock?: number;
   // Radios derive price/variants from bands:
   bands?: Band[];
   programming?: boolean;
@@ -731,6 +737,7 @@ async function main() {
       ].join("\n"),
       isBestSeller: true,
       priceCad: 82,
+      stock: 40,
       categories: ["accessories"],
       industries: ["construction", "security"],
     },
@@ -750,6 +757,7 @@ async function main() {
       ].join("\n"),
       isNewArrival: true,
       priceCad: 196,
+      stock: 35,
       categories: ["accessories"],
       industries: ["security", "retail"],
     },
@@ -767,6 +775,7 @@ async function main() {
         "Compatibility: Bluetooth-enabled Hytera radios",
       ].join("\n"),
       priceCad: 146,
+      stock: 45,
       categories: ["accessories"],
       industries: ["healthcare", "hospitality"],
     },
@@ -785,6 +794,7 @@ async function main() {
         "Compatibility: HP702 / HP782",
       ].join("\n"),
       priceCad: 163,
+      stock: 50,
       categories: ["accessories"],
       industries: ["construction", "security"],
     },
@@ -802,6 +812,7 @@ async function main() {
         "Compatibility: HP-series Li-ion & Li-Po batteries",
       ].join("\n"),
       priceCad: 54,
+      stock: 30,
       categories: ["accessories"],
       industries: ["retail", "schools"],
     },
@@ -816,7 +827,6 @@ async function main() {
       programming,
       priceCad,
       saleCad,
-      images,
       status,
       isNewArrival,
       isBestSeller,
@@ -852,7 +862,7 @@ async function main() {
 
     const productFields = {
       ...base,
-      images: images ?? ["/placeholder-product.svg"],
+      images: productImages(base.slug),
       status: status ?? ("ACTIVE" as const),
       isNewArrival: isNewArrival ?? false,
       isBestSeller: isBestSeller ?? false,

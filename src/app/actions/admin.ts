@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
-import { ProductStatus } from "@prisma/client";
+import { ProductStatus, OrderStatus } from "@prisma/client";
 
 async function requireAdmin() {
   const session = await auth();
@@ -14,6 +14,34 @@ async function requireAdmin() {
     redirect("/admin/login");
   }
   return session;
+}
+
+const ORDER_STATUSES: OrderStatus[] = [
+  "PENDING",
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+];
+
+export async function updateOrderStatusAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "") as OrderStatus;
+
+  if (!id || !ORDER_STATUSES.includes(status)) {
+    return;
+  }
+
+  await prisma.order.update({
+    where: { id },
+    data: { status },
+  });
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
 }
 
 export async function saveProductAction(formData: FormData) {
@@ -44,6 +72,7 @@ export async function saveProductAction(formData: FormData) {
     ? Math.round(Number(saleUsdCentsRaw) * 100)
     : null;
   const hasVariants = formData.get("hasVariants") === "on";
+  const stock = Math.max(0, Math.round(Number(formData.get("stock") ?? 0)));
   const categoryIds = formData.getAll("categoryIds").map(String);
   const industryIds = formData.getAll("industryIds").map(String);
 
@@ -63,6 +92,7 @@ export async function saveProductAction(formData: FormData) {
     saleCadCents,
     saleUsdCents,
     hasVariants,
+    stock,
   };
 
   let productId = id;

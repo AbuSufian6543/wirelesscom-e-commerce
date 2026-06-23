@@ -21,6 +21,7 @@ type ProductFormProps = {
     saleCadCents?: number | null;
     saleUsdCents?: number | null;
     hasVariants: boolean;
+    stock: number;
     categories: Array<{ categoryId: string }>;
     industries: Array<{ industryId: string }>;
   };
@@ -159,6 +160,20 @@ export async function ProductForm({ product }: ProductFormProps) {
                 : ""
             }
           />
+        </div>
+        <div>
+          <Label htmlFor="stock">Stock quantity</Label>
+          <Input
+            id="stock"
+            name="stock"
+            type="number"
+            min="0"
+            step="1"
+            defaultValue={product?.stock ?? 0}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            For simple products without variants. If &quot;Has Variants&quot; is checked, set stock on each variant below.
+          </p>
         </div>
       </div>
 

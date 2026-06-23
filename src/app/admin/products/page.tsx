@@ -12,8 +12,19 @@ export default async function AdminProductsPage() {
 
   const products = await prisma.product.findMany({
     orderBy: { updatedAt: "desc" },
-    include: { categories: { include: { category: true } } },
+    include: {
+      categories: { include: { category: true } },
+      variants: { select: { stock: true } },
+    },
   });
+
+  function stockLabel(product: (typeof products)[number]) {
+    if (product.hasVariants) {
+      const total = product.variants.reduce((sum, v) => sum + v.stock, 0);
+      return { quantity: total, hint: "across variants" };
+    }
+    return { quantity: product.stock, hint: null };
+  }
 
   return (
     <div>
@@ -31,11 +42,14 @@ export default async function AdminProductsPage() {
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">CAD</th>
               <th className="px-4 py-3">USD</th>
+              <th className="px-4 py-3">Quantity</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products.map((product) => {
+              const { quantity, hint } = stockLabel(product);
+              return (
               <tr key={product.id} className="border-t border-slate-100">
                 <td className="px-4 py-3">
                   <p className="font-medium">{product.name}</p>
@@ -44,6 +58,22 @@ export default async function AdminProductsPage() {
                 <td className="px-4 py-3 capitalize">{product.status.toLowerCase()}</td>
                 <td className="px-4 py-3">{formatPrice(product.priceCadCents, "CAD")}</td>
                 <td className="px-4 py-3">{formatPrice(product.priceUsdCents, "USD")}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={
+                      quantity === 0
+                        ? "font-semibold text-red-600"
+                        : quantity <= 5
+                          ? "font-semibold text-amber-600"
+                          : "font-semibold text-slate-900"
+                    }
+                  >
+                    {quantity}
+                  </span>
+                  {hint && (
+                    <p className="text-xs text-slate-500">{hint}</p>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
@@ -58,7 +88,8 @@ export default async function AdminProductsPage() {
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>
