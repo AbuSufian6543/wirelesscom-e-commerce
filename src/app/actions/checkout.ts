@@ -56,8 +56,13 @@ export async function createCheckoutOrderAction(formData: FormData) {
       return { error: `${item.product.name} is out of stock.` };
     }
 
-    if (!item.variant && !item.product.hasVariants && item.quantity > 99) {
-      return { error: "Invalid quantity." };
+    if (!item.variant && !item.product.hasVariants) {
+      if (item.product.stock < item.quantity) {
+        return { error: `${item.product.name} is out of stock.` };
+      }
+      if (item.quantity > 99) {
+        return { error: "Invalid quantity." };
+      }
     }
 
     subtotalCents += pricing.currentCents * item.quantity;
@@ -154,6 +159,11 @@ export async function captureCheckoutOrderAction(orderId: string, paypalOrderId:
         if (item.variantId) {
           await tx.productVariant.update({
             where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        } else {
+          await tx.product.update({
+            where: { id: item.productId },
             data: { stock: { decrement: item.quantity } },
           });
         }

@@ -28,7 +28,7 @@ export default function LoginPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" required />
           </div>
-          {error && <p className="text-sm text-blue-600">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <Button type="submit" className="w-full">
             Sign In
           </Button>

@@ -69,6 +69,25 @@ Admin panel: http://localhost:3000/admin
 
 Change credentials via `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` before seeding.
 
+## Email / OTP Signup
+
+Customer signup is a two-step flow: enter details, then verify a 6-digit code
+emailed to the address. Configure SMTP in `.env`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-sender@gmail.com
+SMTP_PASS=your-16-char-app-password
+SMTP_FROM="Hytera Radios <your-sender@gmail.com>"
+```
+
+For Gmail, enable 2-Step Verification and create an App Password
+(https://myaccount.google.com/apppasswords). If `SMTP_HOST` is left empty, the
+OTP is logged to the server console instead of being emailed (handy for local
+testing without credentials).
+
 ## PayPal Setup
 
 1. Create a PayPal Developer app at https://developer.paypal.com
